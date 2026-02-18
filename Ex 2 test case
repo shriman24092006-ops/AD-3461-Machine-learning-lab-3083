@@ -1,0 +1,66 @@
+import pandas as pd
+import numpy as np
+from math import log2
+data = {
+    'Fever': ['High', 'High', 'Normal', 'Low'],
+    'Cough': ['Yes', 'Yes', 'Yes', 'No'],
+    'Fatigue': ['Yes', 'No', 'Yes', 'No'],
+    'Age': ['Old', 'Young', 'Old', 'Young'],
+    'Disease': ['Yes', 'Yes', 'Yes', 'No']
+}
+
+df = pd.DataFrame(data)
+def entropy(target):
+    values, counts = np.unique(target, return_counts=True)
+    entropy_value = 0
+    for i in range(len(values)):
+        prob = counts[i] / sum(counts)
+        entropy_value -= prob * log2(prob)
+    return entropy_value
+
+def information_gain(data, attribute, target_name="Disease"):
+    total_entropy = entropy(data[target_name])
+    
+    values, counts = np.unique(data[attribute], return_counts=True)
+    weighted_entropy = 0
+    
+    for i in range(len(values)):
+        subset = data[data[attribute] == values[i]]
+        weighted_entropy += (counts[i] / sum(counts)) * entropy(subset[target_name])
+    
+    return total_entropy - weighted_entropy
+
+def id3(data, original_data, attributes, target_name="Disease"):
+ 
+    if len(np.unique(data[target_name])) <= 1:
+        return np.unique(data[target_name])[0]
+ 
+    elif len(data) == 0:
+        return np.unique(original_data[target_name])[
+            np.argmax(np.unique(original_data[target_name], return_counts=True)[1])
+        ]
+    
+    elif len(attributes) == 0:
+        return np.unique(data[target_name])[
+            np.argmax(np.unique(data[target_name], return_counts=True)[1])
+        ]
+    
+    else:
+        gains = [information_gain(data, attr, target_name) for attr in attributes]
+        best_attr = attributes[np.argmax(gains)]
+        
+        tree = {best_attr: {}}
+        
+        attributes = [attr for attr in attributes if attr != best_attr]
+        
+        for value in np.unique(data[best_attr]):
+            subset = data[data[best_attr] == value]
+            subtree = id3(subset, df, attributes, target_name)
+            tree[best_attr][value] = subtree
+        
+        return tree
+attributes = list(df.columns[:-1])
+decision_tree = id3(df, df, attributes)
+
+print("\nDecision Tree:")
+print(decision_tree)
