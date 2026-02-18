@@ -1,0 +1,36 @@
+import pandas as pd
+import numpy as np
+from pgmpy.models import DiscreteBayesianNetwork
+from pgmpy.estimators import MaximumLikelihoodEstimator
+from pgmpy.inference import VariableElimination
+model = DiscreteBayesianNetwork([
+    ('Infection', 'Fever'),
+    ('Infection', 'Cough'),
+    ('Infection', 'Blood_Test'),
+    ('Fever', 'Fatigue')
+])
+
+data_dict = {
+    'Infection': np.random.choice(['Viral', 'Bacterial', 'Fungal'], 100, p=[0.5, 0.3, 0.2]),
+    'Fever': np.random.choice(['Yes', 'No'], 100, p=[0.7, 0.3]),
+    'Cough': np.random.choice(['Yes', 'No'], 100, p=[0.6, 0.4]),
+    'Blood_Test': np.random.choice(['HighWBC', 'NormalWBC'], 100, p=[0.4, 0.6]),
+    'Fatigue': np.random.choice(['Yes', 'No'], 100, p=[0.5, 0.5])
+}
+
+df = pd.DataFrame(data_dict)
+
+model.fit(df, estimator=MaximumLikelihoodEstimator)
+
+inference = VariableElimination(model)
+
+evidence = {
+    'Fever': 'Yes',
+    'Cough': 'Yes',
+    'Blood_Test': 'HighWBC'
+}
+
+result = inference.map_query(variables=['Infection'], evidence=evidence)
+
+print("\nMost Likely Infection Diagnosis:")
+print("Infection Type:", result['Infection'])
