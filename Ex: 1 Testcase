@@ -1,0 +1,57 @@
+import copy
+
+
+data = [
+    ['High', 'Yes', 'Yes', 'Yes'],
+    ['High', 'Yes', 'No', 'Yes'],
+    ['Normal', 'Yes', 'Yes', 'No'],
+    ['High', 'No', 'Yes', 'Yes']
+]
+
+attributes = ['Fever', 'Cough', 'Fatigue']
+
+S = ['0'] * (len(data[0]) - 1)
+G = [['?'] * (len(data[0]) - 1)]
+
+def is_consistent(hypothesis, example):
+    for i in range(len(hypothesis)):
+        if hypothesis[i] != '?' and hypothesis[i] != example[i]:
+            return False
+    return True
+
+print("\nInitial S:", S)
+print("Initial G:", G)
+
+for example in data:
+    features = example[:-1]
+    label = example[-1]
+
+    if label == 'Yes':  
+        for i in range(len(S)):
+            if S[i] == '0':
+                S[i] = features[i]
+            elif S[i] != features[i]:
+                S[i] = '?'
+
+        G = [g for g in G if is_consistent(g, features)]
+
+    else:   
+        new_G = []
+        for g in G:
+            if is_consistent(g, features):
+                for i in range(len(g)):
+                    if g[i] == '?':
+                        if features[i] != S[i]:
+                            new_hypothesis = g.copy()
+                            new_hypothesis[i] = S[i]
+                            new_G.append(new_hypothesis)
+            else:
+                new_G.append(g)
+        G = new_G
+
+    print("\nAfter example:", example)
+    print("S:", S)
+    print("G:", G)
+
+print("\nFinal Specific Hypothesis (S):", S)
+print("Final General Hypothesis (G):", G)
