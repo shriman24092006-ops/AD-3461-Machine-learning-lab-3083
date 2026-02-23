@@ -1,0 +1,116 @@
+import pandas as pd
+import numpy as np
+
+# Creating PlayTennis dataset manually
+data = {
+    'outlook': ['Sunny', 'Sunny', 'Overcast', 'Rain', 'Rain', 'Rain',
+                'Overcast', 'Sunny', 'Sunny', 'Rain', 'Sunny',
+                'Overcast', 'Overcast', 'Rain'],
+   
+    'temperature': ['Hot', 'Hot', 'Hot', 'Mild', 'Cool', 'Cool',
+                    'Cool', 'Mild', 'Cool', 'Mild', 'Mild',
+                    'Mild', 'Hot', 'Mild'],
+   
+    'humidity': ['High', 'High', 'High', 'High', 'Normal', 'Normal',
+                 'Normal', 'High', 'Normal', 'Normal', 'Normal',
+                 'High', 'Normal', 'High'],
+   
+    'wind': ['Weak', 'Strong', 'Weak', 'Weak', 'Weak', 'Strong',
+             'Strong', 'Weak', 'Weak', 'Weak', 'Strong',
+             'Strong', 'Weak', 'Strong'],
+   
+    'class': ['No', 'No', 'Yes', 'Yes', 'Yes', 'No',
+              'Yes', 'No', 'Yes', 'Yes', 'Yes',
+              'Yes', 'Yes', 'No']
+}
+
+dataset = pd.DataFrame(data)
+
+
+# Entropy function
+def entropy(target_col):
+    elements, counts = np.unique(target_col, return_counts=True)
+    entropy_value = -np.sum([
+        (counts[i] / np.sum(counts)) *
+        np.log2(counts[i] / np.sum(counts))
+        for i in range(len(elements))
+    ])
+    return entropy_value
+
+
+# Information Gain function
+def InfoGain(data, split_attribute_name, target_name="class"):
+    total_entropy = entropy(data[target_name])
+    vals, counts = np.unique(data[split_attribute_name], return_counts=True)
+
+    weighted_entropy = np.sum([
+        (counts[i] / np.sum(counts)) *
+        entropy(data.where(data[split_attribute_name] == vals[i])
+                .dropna()[target_name])
+        for i in range(len(vals))
+    ])
+
+    information_gain = total_entropy - weighted_entropy
+    return information_gain
+
+
+# ID3 Algorithm
+def ID3(data, originaldata, features,
+        target_attribute_name="class",
+        parent_node_class=None):
+
+    # If all target values are same
+    if len(np.unique(data[target_attribute_name])) <= 1:
+        return np.unique(data[target_attribute_name])[0]
+
+    # If dataset is empty
+    elif len(data) == 0:
+        return np.unique(originaldata[target_attribute_name])[
+            np.argmax(
+                np.unique(originaldata[target_attribute_name],
+                          return_counts=True)[1]
+            )
+        ]
+
+    # If no features left
+    elif len(features) == 0:
+        return parent_node_class
+
+    else:
+        parent_node_class = np.unique(
+            data[target_attribute_name]
+        )[np.argmax(
+            np.unique(data[target_attribute_name],
+                      return_counts=True)[1]
+        )]
+
+        item_values = [InfoGain(data, feature,
+                                target_attribute_name)
+                       for feature in features]
+
+        best_feature_index = np.argmax(item_values)
+        best_feature = features[best_feature_index]
+
+        tree = {best_feature: {}}
+
+        features = [i for i in features if i != best_feature]
+
+        for value in np.unique(data[best_feature]):
+            sub_data = data.where(
+                data[best_feature] == value
+            ).dropna()
+
+            subtree = ID3(sub_data, dataset, features,
+                          target_attribute_name,
+                          parent_node_class)
+
+            tree[best_feature][value] = subtree
+
+        return tree
+
+
+# Build and display tree
+tree = ID3(dataset, dataset, dataset.columns[:-1])
+
+print("\nDisplay Tree\n")
+print(tree)
