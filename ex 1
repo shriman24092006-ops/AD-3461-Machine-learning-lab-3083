@@ -1,0 +1,56 @@
+import numpy as np
+
+concepts = np.array([
+    ['Sunny', 'Warm', 'Normal', 'Strong', 'Warm', 'Same'],
+    ['Sunny', 'Warm', 'High', 'Strong', 'Warm', 'Same'],
+    ['Rainy', 'Cold', 'High', 'Strong', 'Warm', 'Change'],
+    ['Sunny', 'Warm', 'High', 'Strong', 'Cool', 'Change']
+])
+
+# Target labels
+target = np.array(['Yes', 'Yes', 'No', 'Yes'])
+
+
+def learn(concepts, target):
+    specific_h = concepts[0].copy()
+    print("Initialization of specific_h and general_h")
+    print("Specific_h:", specific_h)
+
+    general_h = [["?" for _ in range(len(specific_h))]
+                 for _ in range(len(specific_h))]
+    print("General_h:", general_h)
+    print()
+
+    for i, h in enumerate(concepts):
+
+        if target[i] == "Yes":
+            for x in range(len(specific_h)):
+                if h[x] != specific_h[x]:
+                    specific_h[x] = '?'
+                    general_h[x][x] = '?'
+
+        elif target[i] == "No":
+            for x in range(len(specific_h)):
+                if h[x] != specific_h[x]:
+                    general_h[x][x] = specific_h[x]
+                else:
+                    general_h[x][x] = '?'
+
+        print("Step", i + 1)
+        print("Specific_h:", specific_h)
+        print("General_h:", general_h)
+        print()
+
+    # Remove overly general hypotheses
+    general_h = [h for h in general_h if h != ['?'] * len(specific_h)]
+
+    return specific_h, general_h
+
+
+s_final, g_final = learn(concepts, target)
+
+print("Final Specific_h:")
+print(s_final)
+
+print("Final General_h:")
+print(g_final)
