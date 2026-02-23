@@ -1,0 +1,37 @@
+import pandas as pd
+msg = pd.read_csv(&#39;naivetext1.csv&#39;,
+names=[&#39;message&#39;, &#39;label&#39;]) print(&#39;The
+dimensions of the dataset&#39;, msg.shape)
+msg[&#39;labelnum&#39;] = msg.label.map({&#39;pos&#39;: 1,
+&#39;neg&#39;: 0})
+X = msg.message
+y = msg.labelnum
+print(X)
+print(y)
+from sklearn.model_selection import
+train_test_split
+xtrain, xtest, ytrain, ytest = train_test_split(X, y)
+print(xtest.shape)
+print(xtrain.shape)
+print(ytest.shape)
+print(ytrain.shape)
+from sklearn.feature_extraction.text
+import CountVectorizer
+count_vect = CountVectorizer()
+xtrain_dtm = count_vect.fit_transform(xtrain)
+xtest_dtm = count_vect.transform(xtest)
+from sklearn.naive_bayes
+import MultinomialNB
+clf = MultinomialNB().fit(xtrain_dtm, ytrain)
+predicted = clf.predict(xtest_dtm)
+from sklearn import metrics
+print(&#39;Accuracy metrics&#39;)
+print(&#39;Accuracy of the classifier is&#39;,
+metrics.accuracy_score(ytest, predicted))
+
+print(&#39;Confusion matrix&#39;)
+print(metrics.confusion_matrix(ytest,
+predicted))
+print(&#39;Recall and Precision&#39;)
+print(metrics.recall_score(ytest, predicted))
+print(metrics.precision_score(ytest, predicted))
