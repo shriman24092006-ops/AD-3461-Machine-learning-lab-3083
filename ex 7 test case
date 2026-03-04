@@ -1,0 +1,39 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.cluster import KMeans
+from sklearn.mixture import GaussianMixture
+
+# Creating dataset directly
+X = np.array([
+    [10,5],[20,10],[30,15],[40,20],[50,25],
+    [60,30],[70,35],[80,40],[90,45],
+    [15,8],[25,12],[35,18],[45,22],
+    [55,28],[65,32],[75,38],[85,42],[95,48]
+])
+
+# Plot Dataset
+plt.scatter(X[:,0], X[:,1])
+plt.title("Dataset")
+plt.xlabel("Distance Feature")
+plt.ylabel("Speeding Feature")
+plt.show()
+
+# EM Algorithm
+gmm = GaussianMixture(n_components=3)
+gmm.fit(X)
+em_labels = gmm.predict(X)
+
+plt.scatter(X[:,0], X[:,1], c=em_labels)
+plt.title("EM Clustering")
+plt.show()
+
+# KMeans
+kmeans = KMeans(n_clusters=3, random_state=0)
+kmeans.fit(X)
+
+plt.scatter(X[:,0], X[:,1], c=kmeans.labels_)
+plt.scatter(kmeans.cluster_centers_[:,0],
+            kmeans.cluster_centers_[:,1],
+            marker='X', s=200)
+plt.title("KMeans Clustering")
+plt.show()
